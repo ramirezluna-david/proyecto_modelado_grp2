@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-
 from sklearn.base import BaseEstimator, TransformerMixin
 
 class CorrelationFilter(BaseEstimator, TransformerMixin):
@@ -77,33 +76,103 @@ class DataFrameConverter(BaseEstimator, TransformerMixin):
     return pd.DataFrame(X, columns=self.feature_names_)
   
 class Winsorizer(BaseEstimator, TransformerMixin):
-    def __init__(self, limits=(0.05, 0.05)):
-        self.limits = limits
+  """
+  Winsorizacion de variables numericas.
 
-    def fit(self, X, y=None):
-        X_df = pd.DataFrame(X)
+  Parametros
+  ----------
+  BaseEstimator : Clase base para estimadores en scikit-learn.
+  TransformerMixin : Clase base para transformadores en scikit-learn.
+
+  Atributos
+  ---------
+  limits : tuple of float
+    Limites inferior y superior para el recorte de colas.
+  lower_bounds_ : Series
+    Cuantiles inferiores por columna (calculados en fit).
+  upper_bounds_ : Series
+    Cuantiles superiores por columna (calculados en fit).
+  columns_ : array-like
+    Nombres de columnas usadas para transformar.
+  Returns
+  -------
+  DataFrame
+    Conjunto de datos con valores recortados.
+  """
+  def __init__(self, limits=(0.05, 0.05)):
+    """
+    Inicializa el transformador.
+
+    Parametros
+    ----------
+    limits : tuple of float, default=(0.05, 0.05)
+      Porcentaje de recorte en las colas inferior y superior.
+    """
+    self.limits = limits
+
+  def fit(self, X, y=None):
+      """
+      Calcula y almacena los limites por columna.
+
+      Parametros
+      ----------
+      X : array-like o DataFrame
+        Conjunto de datos de entrada.
+      y : Ignorado
+
+      Returns
+      -------
+      self
+        Instancia entrenada.
+      """
+      X_df = pd.DataFrame(X)
         # Calculamos y guardamos los límites matemáticos AQUÍ (Fase de aprendizaje)
-        self.lower_bounds_ = X_df.quantile(self.limits[0])
-        self.upper_bounds_ = X_df.quantile(1 - self.limits[1])
-        self.columns_ = X_df.columns if isinstance(X, pd.DataFrame) else np.arange(X.shape[1])
-        return self
+      self.lower_bounds_ = X_df.quantile(self.limits[0])
+      self.upper_bounds_ = X_df.quantile(1 - self.limits[1])
+      self.columns_ = X_df.columns if isinstance(X, pd.DataFrame) else np.arange(X.shape[1])
+      return self
 
-    def transform(self, X):
-        X_df = pd.DataFrame(X, columns=self.columns_).copy()
-        X_df = X_df.astype("float64")
+  def transform(self, X):
+      """
+      Aplica el recorte de valores segun los limites aprendidos.
+
+      Parametros
+      ----------
+      X : array-like o DataFrame
+        Conjunto de datos de entrada.
+
+      Returns
+      -------
+      DataFrame
+        Conjunto de datos con valores recortados.
+      """
+      X_df = pd.DataFrame(X, columns=self.columns_).copy()
+      X_df = X_df.astype("float64")
         # Aplicamos los límites guardados
-        for col in self.columns_:
-            X_df[col] = np.clip(X_df[col], self.lower_bounds_[col], self.upper_bounds_[col])
+      for col in self.columns_:
+        X_df[col] = np.clip(X_df[col], self.lower_bounds_[col], self.upper_bounds_[col])
         return X_df
 
-    def get_feature_names_out(self, input_features=None):
-        if input_features is None:
-            return np.array(self.columns_)
-        else:
-            return np.array(input_features)
+  def get_feature_names_out(self, input_features=None):
+      """
+      Devuelve nombres de caracteristicas.
+
+      Parametros
+      ----------
+      input_features : array-like, optional
+        Nombres de entrada a devolver.
+
+      Returns
+      -------
+      ndarray
+        Nombres de las columnas.
+      """
+      if input_features is None:
+        return np.array(self.columns_)
+      else:
+        return np.array(input_features)
         
 # Define función para eliminar duplicados
-
 def tratar_duplicados(X : pd.DataFrame, drop = True):
   """
   Tratamiento de duplicados
