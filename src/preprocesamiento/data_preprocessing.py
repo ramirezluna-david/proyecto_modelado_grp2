@@ -191,6 +191,51 @@ def tratar_duplicados(X : pd.DataFrame, drop = True):
   """
   return X.drop_duplicates() if drop else X
 
+def separar_objetivo_features(
+  X: pd.DataFrame,
+  target: str,
+  drop_duplicates: bool = True,
+):
+  """
+  Elimina duplicados y separa objetivo y features.
+
+  Parametros
+  ----------
+  X : DataFrame
+    Conjunto de datos.
+  target : str
+    Nombre de la variable objetivo.
+  drop_duplicates : bool, default=True
+    Si True, elimina duplicados antes de separar.
+
+  Returns
+  -------
+  tuple
+    (data_sin_dup, var_dep, var_indep)
+  """
+  data_sin_dup = tratar_duplicados(X, drop=drop_duplicates).reset_index(drop=True)
+  var_dep = data_sin_dup[target].reset_index(drop=True)
+  var_indep = data_sin_dup.drop(columns=[target])
+  return data_sin_dup, var_dep, var_indep
+
+def eliminar_nulos_objetivo(X: pd.DataFrame, target: str) -> pd.DataFrame:
+  """
+  Elimina filas con valores nulos en la variable objetivo.
+
+  Parametros
+  ----------
+  X : DataFrame
+    Conjunto de datos.
+  target : str
+    Nombre de la variable objetivo.
+
+  Returns
+  -------
+  DataFrame
+    Conjunto de datos sin nulos en la variable objetivo.
+  """
+  return X.dropna(subset=[target]).reset_index(drop=True)
+
 def detectar_inconsistencias(
   X: pd.DataFrame,
   columnas_negativas_check=None,
@@ -290,43 +335,8 @@ def corregir_valores_negativos(
     print("Valores negativos corregidos a valores absolutos en las columnas relevantes.")
 
   return X_out
-
-class FeatureEngineeringRegression(BaseEstimator, TransformerMixin):
-  """
-  Ingeniería de características
-
-  Parámetros
-  ----------
-  BaseEstimator : Clase base para estimadores en scikit-learn.
-  TransformerMixin : Clase base para transformadores en scikit-learn.
-
-  Atributos
-  ---------
-  columns_ : array-like
-    Nombres de las columnas a transformar.
-  Returns
-  -------
-  DataFrame
-    Conjunto de datos con nuevas características.
-  """
-  def __init__(self):
-    pass
-
-  def fit(self, X, y=None):
-    return self
-
-  def transform(self, X):
-    X = X.copy()
-
-    # # razón de endeudamiento
-    # X["ratio_endeudamiento"] = X["deuda_total"] / X["ingreso_mensual"]
-
-    # porcentaje de gasto respecto al ingreso
-    X['porcentaje_gasto'] = X['gasto_mensual'] / X['ingreso_mensual']
-
-    return X
-
-class FeatureEngineeringClassifier(BaseEstimator, TransformerMixin):
+  
+class FeatureEngineering(BaseEstimator, TransformerMixin):
   """
   Ingeniería de características
 

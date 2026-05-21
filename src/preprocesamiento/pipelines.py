@@ -9,7 +9,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 from preprocesamiento.data_preprocessing import CorrelationFilter
 from preprocesamiento.data_preprocessing import DataFrameConverter
-from preprocesamiento.data_preprocessing import FeatureEngineeringRegression
+from preprocesamiento.data_preprocessing import FeatureEngineering
 from preprocesamiento.data_preprocessing import Winsorizer
 from preprocesamiento.data_preprocessing import tratar_duplicados
 
@@ -85,7 +85,30 @@ def build_cleaning_pipeline(preprocesador):
     return Pipeline(
         steps=[
             ("duplicados", FunctionTransformer(tratar_duplicados, kw_args={"drop": True})),
-            ("feature_engineering", FeatureEngineeringRegression()),
+            ("feature_engineering", FeatureEngineering()),
+            ("preprocesamiento", preprocesador),
+            ("conversion", DataFrameConverter(preprocesador)),
+        ]
+    )
+
+def build_cleaning_pipeline_reg(preprocesador):
+    """
+    Construye el pipeline de limpieza con duplicados, features y preprocesamiento.
+
+    Parameters
+    ----------
+    preprocesador : ColumnTransformer
+        Preprocesador combinado.
+
+    Returns
+    -------
+    Pipeline
+        Pipeline de limpieza.
+    """
+    return Pipeline(
+        steps=[
+            ("duplicados", FunctionTransformer(tratar_duplicados, kw_args={"drop": True})),
+            # ("feature_engineering", FeatureEngineering()),
             ("preprocesamiento", preprocesador),
             ("conversion", DataFrameConverter(preprocesador)),
         ]
