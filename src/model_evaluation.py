@@ -1,37 +1,81 @@
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, confusion_matrix, ConfusionMatrixDisplay
 
-def evaluar_classifier(modelo: BaseEstimator, X_train: np.array, X_test: np.array, y_train: np.array, y_test: np.array):
+from sklearn.base import BaseEstimator
+from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, r2_score, roc_auc_score
+
+def evaluar_classifier(modelo: BaseEstimator, X_test: np.array, y_test: np.array):
   """
-  Retorna las métricas del modelo
+  Evalua un clasificador y retorna sus metricas.
 
   Parámetros
   ----------
   modelo : BaseEstimator
-    Modelo a evaluar.
-  X_train : np.array
-    Conjunto de datos de entrenamiento.
+    Modelo a evaluar (debe exponer predict_proba y estar entrenado).
   X_test : np.array
     Conjunto de datos de prueba.
-  y_train : np.array
-    Etiquetas de entrenamiento.
   y_test : np.array
-    Etiquetas de prueba
+    Etiquetas de prueba.
   Returns
   -------
   dict
-    Diccionario con las métricas del modelo.
+    Diccionario con accuracy, f1 y roc_auc.
 
   """
-  modelo.fit(X_train, y_train)
-
   y_pred = modelo.predict(X_test)
   y_prob = modelo.predict_proba(X_test)[:,1]
 
   return {
     "accuracy": accuracy_score(y_test, y_pred),
     "f1": f1_score(y_test, y_pred),
-    "roc_auc": roc_auc_score(y_test, y_prob)
+    "roc_auc": roc_auc_score(y_test, y_prob),
   }
+
+def evaluar_regresor(modelo: BaseEstimator, X_test: np.array, y_test: np.array):
+  """
+  Evalua un modelo de regresion y retorna sus metricas.
+
+  Parámetros
+  ----------
+  modelo : BaseEstimator
+    Modelo a evaluar (debe estar entrenado).
+  X_test : np.array
+    Conjunto de datos de prueba.
+  y_test : np.array
+    Etiquetas de prueba.
+
+  Returns
+  -------
+  dict
+    Diccionario con mae y r2.
+  """
+  y_pred = modelo.predict(X_test)
+
+  return {
+    "mae": mean_absolute_error(y_test, y_pred),
+    "r2": r2_score(y_test, y_pred),
+  }
+
+def comparar_metricas(resultados: dict, sort_by=None, ascending=False):
+  """
+  Convierte un diccionario de metricas en un DataFrame y opcionalmente ordena.
+
+  Parametros
+  ----------
+  resultados : dict
+    Diccionario con nombre_modelo -> metricas.
+  sort_by : str or None
+    Columna por la que ordenar.
+  ascending : bool
+    Orden ascendente si es True.
+
+  Returns
+  -------
+  DataFrame
+    Tabla de metricas por modelo.
+  """
+  df = pd.DataFrame(resultados).T
+  if sort_by and sort_by in df.columns:
+    df = df.sort_values(by=sort_by, ascending=ascending)
+  return df
+
