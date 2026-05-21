@@ -1,31 +1,47 @@
-### Pipelines para cada tipo de conjunto
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, StandardScaler
+from preprocesamiento.data_preprocessing import Winsorizer
 
-# Define pipeline para variables numéricas
-pipeline_numerical_features = Pipeline(steps=[
-    ('winsorizer', Winsorizer(limits=(0.05, 0.05))), # Aplica Winsorización para limitar outliers al 5%
-    ('imputer', SimpleImputer(strategy='mean')), # Imputa valores faltantes con el promedio
-    ('scaler', StandardScaler()) # Escala características numéricas
-])
+def build_preprocessor(
+    numerical_features,
+    categorical_nominales,
+    categorical_ordinales,
+    orden_tipo_plan,
+    orden_uso_app,
+):
+    """
+    Construye pipelines de transformacion y el preprocesador combinado.
 
-# Define pipeline para variables categóricas nominales
-pipeline_nominales = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='most_frequent')), # Imputa valores faltantes con la moda
-    ('onehot', OneHotEncoder(handle_unknown='ignore')) # Aplica codificación OneHotEncoder para variables nominales
-])
+    Returns
+    -------
+    tuple
+        (pipeline_numerical_features, pipeline_nominales, pipeline_ordinales, preprocesador)
+    """
+    pipeline_numerical_features = Pipeline(steps=[
+        ("winsorizer", Winsorizer(limits=(0.05, 0.05))),
+        ("imputer", SimpleImputer(strategy="mean")),
+        ("scaler", StandardScaler()),
+    ])
 
-# Define pipeline para variables categóricas ordinales
-pipeline_ordinales = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='most_frequent')), # Imputa valores faltantes con la moda
-    ('ordinal', OrdinalEncoder(categories=[orden_tipo_plan, orden_uso_app])) # Aplica codificación OrdinalEncoder para variables ordinales con orden definido
-])
+    pipeline_nominales = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        ("onehot", OneHotEncoder(handle_unknown="ignore")),
+    ])
 
-### Integración de pipelines de transformación
-# Combina pipelines para aplicar transformaciones específicas a cada tipo de variable
-preprocesador = ColumnTransformer(
-    transformers=[
-        ('num_limpios', pipeline_numerical_features, numerical_features),
-        ('cat_nom', pipeline_nominales, categorical_nominales),
-        ('cat_ord', pipeline_ordinales, categorical_ordinales),
-    ],
-    remainder='drop' # Elimina columnas no especificadas
-)
+    pipeline_ordinales = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        ("ordinal", OrdinalEncoder(categories=[orden_tipo_plan, orden_uso_app])),
+    ])
+
+    preprocesador = ColumnTransformer(
+        transformers=[
+            ("num_limpios", pipeline_numerical_features, numerical_features),
+            ("cat_nom", pipeline_nominales, categorical_nominales),
+            ("cat_ord", pipeline_ordinales, categorical_ordinales),
+        ],
+        remainder="drop",
+    )
+
+    return pipeline_numerical_features, pipeline_nominales, pipeline_ordinales, preprocesador

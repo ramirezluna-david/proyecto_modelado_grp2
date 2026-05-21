@@ -191,6 +191,106 @@ def tratar_duplicados(X : pd.DataFrame, drop = True):
   """
   return X.drop_duplicates() if drop else X
 
+def detectar_inconsistencias(
+  X: pd.DataFrame,
+  columnas_negativas_check=None,
+  columnas_ceros_check=None,
+  verbose=True,
+):
+  """
+  Detecta valores negativos o ceros en columnas que deberian ser positivas.
+
+  Parametros
+  ----------
+  X : DataFrame
+    Conjunto de datos.
+  columnas_negativas_check : list or None
+    Columnas a revisar por valores negativos.
+  columnas_ceros_check : list or None
+    Columnas a revisar por valores cero.
+  verbose : bool
+    Si es True, imprime el resumen de inconsistencias.
+
+  Returns
+  -------
+  tuple
+    (conteo_negativos, conteo_ceros)
+  """
+  if columnas_negativas_check is None:
+    columnas_negativas_check = [
+      "ingreso_mensual", "gasto_mensual", "deuda_total", "score_crediticio",
+      "edad", "antiguedad_meses", "frecuencia_compra", "ultima_compra_dias",
+      "num_productos", "hora_registro",
+    ]
+  if columnas_ceros_check is None:
+    columnas_ceros_check = [
+      "ingreso_mensual", "gasto_mensual", "deuda_total", "score_crediticio",
+      "edad", "antiguedad_meses",
+    ]
+
+  conteo_negativos = {}
+  conteo_ceros = {}
+
+  for col in columnas_negativas_check:
+    if col in X.columns:
+      conteo_negativos[col] = int((X[col] < 0).sum())
+
+  for col in columnas_ceros_check:
+    if col in X.columns:
+      conteo_ceros[col] = int((X[col] == 0).sum())
+
+  conteo_negativos = {k: v for k, v in conteo_negativos.items() if v > 0}
+  conteo_ceros = {k: v for k, v in conteo_ceros.items() if v > 0}
+
+  if verbose:
+    print("Negativos detectados:", conteo_negativos if conteo_negativos else "ninguno")
+    print("Ceros detectados:", conteo_ceros if conteo_ceros else "ninguno")
+
+  return conteo_negativos, conteo_ceros
+
+def corregir_valores_negativos(
+  X: pd.DataFrame,
+  columns_to_correct=None,
+  inplace=False,
+  verbose=True,
+):
+  """
+  Corrige valores negativos convirtiendolos a valor absoluto.
+
+  Parametros
+  ----------
+  X : DataFrame
+    Conjunto de datos.
+  columns_to_correct : list or None
+    Columnas a corregir.
+  inplace : bool
+    Si True, modifica el DataFrame original.
+  verbose : bool
+    Si es True, imprime un mensaje de confirmacion.
+
+  Returns
+  -------
+  DataFrame
+    Conjunto de datos con valores negativos corregidos.
+  """
+  if columns_to_correct is None:
+    columns_to_correct = [
+      "ingreso_mensual", "gasto_mensual", "deuda_total", "score_crediticio",
+      "edad", "antiguedad_meses", "frecuencia_compra", "ultima_compra_dias",
+      "num_productos", "hora_registro",
+    ]
+
+  X_out = X if inplace else X.copy()
+
+  for col in columns_to_correct:
+    if col in X_out.columns:
+      X_out[col] = X_out[col].abs()
+
+  if verbose:
+    print("Valores negativos corregidos a valores absolutos en las columnas relevantes.")
+
+  return X_out
+
 class FeatureEngineeringRegression(BaseEstimator, TransformerMixin):
   """
   Ingeniería de características
@@ -220,6 +320,41 @@ class FeatureEngineeringRegression(BaseEstimator, TransformerMixin):
 
     # # razón de endeudamiento
     # X["ratio_endeudamiento"] = X["deuda_total"] / X["ingreso_mensual"]
+
+    # porcentaje de gasto respecto al ingreso
+    X['porcentaje_gasto'] = X['gasto_mensual'] / X['ingreso_mensual']
+
+    return X
+
+class FeatureEngineeringClassifier(BaseEstimator, TransformerMixin):
+  """
+  Ingeniería de características
+
+  Parámetros
+  ----------
+  BaseEstimator : Clase base para estimadores en scikit-learn.
+  TransformerMixin : Clase base para transformadores en scikit-learn.
+
+  Atributos
+  ---------
+  columns_ : array-like
+    Nombres de las columnas a transformar.
+  Returns
+  -------
+  DataFrame
+    Conjunto de datos con nuevas características.
+  """
+  def __init__(self):
+    pass
+
+  def fit(self, X, y=None):
+    return self
+
+  def transform(self, X):
+    X = X.copy()
+
+    # razón de endeudamiento
+    X["ratio_endeudamiento"] = X["deuda_total"] / X["ingreso_mensual"]
 
     # porcentaje de gasto respecto al ingreso
     X['porcentaje_gasto'] = X['gasto_mensual'] / X['ingreso_mensual']
