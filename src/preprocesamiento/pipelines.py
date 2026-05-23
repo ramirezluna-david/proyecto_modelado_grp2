@@ -218,3 +218,47 @@ def aplicar_pipeline_limpieza(pipeline_limpieza, var_indep, var_dep, target_col=
 
     df[target_col] = var_dep.to_numpy()
     return df
+
+
+def _limpiar_prefijos_columnas(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Elimina prefijos generados por el ColumnTransformer en los nombres de columnas.
+    """
+    if hasattr(df, "columns"):
+        df = df.copy()
+        df.columns = df.columns.str.replace("num_limpios__", "", regex=False)
+        df.columns = df.columns.str.replace("cat_nom__", "", regex=False)
+        df.columns = df.columns.str.replace("cat_ord__", "", regex=False)
+    return df
+
+
+def aplicar_pipeline_limpieza_train_test(pipeline_limpieza, X_train, X_test):
+    """
+    Ajusta el pipeline con train y transforma train/test sin leakage.
+
+    Parameters
+    ----------
+    pipeline_limpieza : Pipeline
+        Pipeline de limpieza entrenable.
+    X_train : DataFrame
+        Variables independientes de entrenamiento.
+    X_test : DataFrame
+        Variables independientes de prueba.
+
+    Returns
+    -------
+    tuple
+        (X_train_t, X_test_t) transformados y con columnas normalizadas.
+    """
+    X_train_t = pipeline_limpieza.fit_transform(X_train)
+    X_test_t = pipeline_limpieza.transform(X_test)
+
+    if not isinstance(X_train_t, pd.DataFrame):
+        X_train_t = pd.DataFrame(X_train_t)
+    if not isinstance(X_test_t, pd.DataFrame):
+        X_test_t = pd.DataFrame(X_test_t)
+
+    X_train_t = _limpiar_prefijos_columnas(X_train_t)
+    X_test_t = _limpiar_prefijos_columnas(X_test_t)
+
+    return X_train_t, X_test_t
