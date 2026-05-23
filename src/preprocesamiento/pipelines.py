@@ -2,10 +2,11 @@ import pandas as pd
 
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, OrdinalEncoder, StandardScaler
-from sklearn.tree import DecisionTreeRegressor
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from preprocesamiento.data_preprocessing import CorrelationFilter
 from preprocesamiento.data_preprocessing import DataFrameConverter
@@ -108,7 +109,6 @@ def build_cleaning_pipeline_reg(preprocesador):
     return Pipeline(
         steps=[
             ("duplicados", FunctionTransformer(tratar_duplicados, kw_args={"drop": True})),
-            # ("feature_engineering", FeatureEngineering()),
             ("preprocesamiento", preprocesador),
             ("conversion", DataFrameConverter(preprocesador)),
         ]
@@ -129,6 +129,30 @@ def build_model_pipeline_regresion(modelo, threshold=0.9):
     -------
     Pipeline
         Pipeline de regresion.
+    """
+    return Pipeline(
+        steps=[
+            ("colinealidad", CorrelationFilter(threshold=threshold)),
+            ("modelo", modelo),
+        ]
+    )
+
+
+def build_model_pipeline_classifier(modelo, threshold=0.9):
+    """
+    Construye un pipeline de clasificacion con filtro de colinealidad.
+
+    Parameters
+    ----------
+    modelo : BaseEstimator
+        Modelo de clasificacion.
+    threshold : float, default=0.9
+        Umbral de correlacion.
+
+    Returns
+    -------
+    Pipeline
+        Pipeline de clasificacion.
     """
     return Pipeline(
         steps=[
@@ -184,6 +208,106 @@ def build_decision_tree_regressor_pipeline(
         random_state=random_state,
     )
     return build_model_pipeline_regresion(modelo, threshold=threshold)
+
+
+def build_logistic_regression_classifier_pipeline(
+    max_iter=1000,
+    class_weight="balanced",
+    threshold=0.9,
+):
+    """
+    Pipeline para regresion logistica.
+
+    Parameters
+    ----------
+    max_iter : int, default=1000
+        Maximo de iteraciones.
+    class_weight : str or dict, default="balanced"
+        Peso de clases.
+    threshold : float, default=0.9
+        Umbral de correlacion.
+
+    Returns
+    -------
+    Pipeline
+        Pipeline con LogisticRegression.
+    """
+    modelo = LogisticRegression(max_iter=max_iter, class_weight=class_weight)
+    return build_model_pipeline_classifier(modelo, threshold=threshold)
+
+
+def build_decision_tree_classifier_pipeline(
+    max_depth=5,
+    class_weight="balanced",
+    min_samples_leaf=1,
+    min_samples_split=2,
+    threshold=0.9,
+):
+    """
+    Pipeline para DecisionTreeClassifier.
+
+    Parameters
+    ----------
+    max_depth : int, default=5
+        Profundidad maxima del arbol.
+    class_weight : str or dict, default="balanced"
+        Peso de clases.
+    min_samples_leaf : int, default=1
+        Minimo de muestras por hoja.
+    min_samples_split : int, default=2
+        Minimo de muestras para dividir.
+    threshold : float, default=0.9
+        Umbral de correlacion.
+
+    Returns
+    -------
+    Pipeline
+        Pipeline con DecisionTreeClassifier.
+    """
+    modelo = DecisionTreeClassifier(
+        max_depth=max_depth,
+        class_weight=class_weight,
+        min_samples_leaf=min_samples_leaf,
+        min_samples_split=min_samples_split,
+    )
+    return build_model_pipeline_classifier(modelo, threshold=threshold)
+
+
+def build_svm_classifier_pipeline(
+    kernel="rbf",
+    class_weight="balanced",
+    probability=True,
+    random_state=42,
+    threshold=0.9,
+):
+    """
+    Pipeline para SVM (SVC).
+
+    Parameters
+    ----------
+    kernel : str, default="rbf"
+        Tipo de kernel.
+    class_weight : str or dict, default="balanced"
+        Peso de clases.
+    probability : bool, default=True
+        Habilita probabilidades.
+    random_state : int, default=42
+        Semilla aleatoria.
+    threshold : float, default=0.9
+        Umbral de correlacion.
+
+    Returns
+    -------
+    Pipeline
+        Pipeline con SVC.
+    """
+    modelo = SVC(
+        kernel=kernel,
+        class_weight=class_weight,
+        probability=probability,
+        random_state=random_state,
+    )
+    return build_model_pipeline_classifier(modelo, threshold=threshold)
 
 def aplicar_pipeline_limpieza(pipeline_limpieza, var_indep, var_dep, target_col="deuda_total"):
     """
