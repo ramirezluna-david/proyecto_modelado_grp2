@@ -57,29 +57,6 @@ def evaluar_regresor(modelo: BaseEstimator, X_test: np.array, y_test: np.array):
       "R2": r2_score(y_test, y_pred),
   }
 
-def comparar_metricas(resultados: dict, sort_by=None, ascending=False):
-  """
-  Convierte un diccionario de metricas en un DataFrame y opcionalmente ordena.
-
-  Parametros
-  ----------
-  resultados : dict
-    Diccionario con nombre_modelo -> metricas.
-  sort_by : str or None
-    Columna por la que ordenar.
-  ascending : bool
-    Orden ascendente si es True.
-
-  Returns
-  -------
-  DataFrame
-    Tabla de metricas por modelo.
-  """
-  df = pd.DataFrame(resultados).T
-  if sort_by and sort_by in df.columns:
-    df = df.sort_values(by=sort_by, ascending=ascending)
-  return df
-
 def comparar_modelos_regresion(diccionario_modelos: dict, X_test: np.array, y_test: np.array, sort_by="R2"):
     """
     Toma un diccionario de modelos entrenados, los evalúa en el conjunto de prueba
@@ -109,5 +86,36 @@ def comparar_modelos_regresion(diccionario_modelos: dict, X_test: np.array, y_te
     if sort_by in df_resultados.columns:
         ascending = False if sort_by == "R2" else True
         df_resultados = df_resultados.sort_values(by=sort_by, ascending=ascending)
+        
+    return df_resultados
+
+def comparar_modelos_clasificacion(diccionario_modelos: dict, X_test: np.array, y_test: np.array, sort_by="roc_auc"):
+    """
+    Toma un diccionario de modelos de clasificación entrenados, los evalúa en el 
+    conjunto de prueba y retorna un DataFrame ordenado con la comparación de métricas.
+    
+    Parámetros
+    ----------
+    diccionario_modelos : dict
+        Diccionario con nombres de modelos como llaves y los estimadores como valores.
+    X_test : np.array
+        Conjunto de datos de prueba.
+    y_test : np.array
+        Etiquetas de prueba.
+    sort_by : str
+        Métrica por la cual ordenar el DataFrame resultante (accuracy, f1, roc_auc).
+    """
+    resultados = []
+    
+    for nombre, modelo in diccionario_modelos.items():
+        metricas = evaluar_classifier(modelo, X_test, y_test)
+        metricas['Modelo'] = nombre
+        resultados.append(metricas)
+        
+    df_resultados = pd.DataFrame(resultados).set_index('Modelo')
+    
+    # Ordenar descendentemente ya que en clasificación (Accuracy, F1, ROC AUC) mayor es mejor
+    if sort_by in df_resultados.columns:
+        df_resultados = df_resultados.sort_values(by=sort_by, ascending=False)
         
     return df_resultados
