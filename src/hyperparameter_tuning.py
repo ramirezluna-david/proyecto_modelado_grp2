@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
 from model_evaluation import evaluar_classifier
-from model_evaluation import evaluar_regressor
+from model_evaluation import evaluar_regresor
 
 def optimizar_grid_search(pipeline, param_grid, X_train, y_train, cv=5, scoring='neg_mean_absolute_error'):
     """
@@ -70,8 +70,8 @@ def reporte_evaluacion_reg(nombre, mejor_modelo, X_test, y_test):
     print(f"Evaluación Final: {nombre}")
     print(f"{'='*50}")
     
-    metricas = evaluar_regressor(mejor_modelo, X_test, y_test)
+    metricas = evaluar_regresor(mejor_modelo, X_test, y_test)
     
     print(f"{'MAE':<20}: {metricas['MAE']:.4f}")
-    print(f"{'MSE':<20}: {metricas['MSE']:.4f}")
+    print(f"{'RMSE':<20}: {metricas['RMSE']:.4f}")
     print(f"{'R2 Score':<20}: {metricas['R2']:.4f}")
