@@ -6,6 +6,7 @@ import seaborn as sns
 
 from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error, r2_score, roc_auc_score
+from sklearn.metrics import ConfusionMatrixDisplay
 
 def evaluar_classifier(modelo: BaseEstimator, X_test: np.array, y_test: np.array):
   """
@@ -174,5 +175,44 @@ def graficar_comparacion_metricas(df_metricas, metricas, target_name, colores=No
         for container in axes[i].containers:
             axes[i].bar_label(container, fmt=label_fmt, padding=3)
 
+    plt.tight_layout()
+    plt.show()
+
+def graficar_matriz_confusion(modelo, X_test, y_test, clases=["No", "Sí"], titulo="Matriz de Confusión", cmap="Blues"):
+    """
+    Calcula y grafica la matriz de confusión a partir de un modelo entrenado.
+    
+    Parámetros
+    ----------
+    modelo : BaseEstimator
+        Modelo de clasificación entrenado (ej. un pipeline).
+    X_test : np.array o pd.DataFrame
+        Conjunto de datos de prueba.
+    y_test : np.array o pd.Series
+        Etiquetas reales del conjunto de prueba.
+    clases : list, opcional
+        Etiquetas a mostrar en los ejes (ej. ["No", "Sí"] para Abandono).
+    titulo : str, opcional
+        Título principal del gráfico.
+    cmap : str, opcional
+        Mapa de colores de matplotlib (por defecto "Blues").
+    """
+    fig, ax = plt.subplots(figsize=(6, 5))
+    
+    # from_estimator realiza la predicción (modelo.predict) y grafica automáticamente
+    ConfusionMatrixDisplay.from_estimator(
+        estimator=modelo,
+        X=X_test,
+        y=y_test,
+        display_labels=clases,
+        cmap=cmap,
+        ax=ax,
+        colorbar=False # Oculta la barra de color lateral para un diseño más limpio
+    )
+    
+    plt.title(titulo, fontweight="bold", fontsize=14)
+    plt.xlabel("Predicción", fontweight="bold", fontsize=12)
+    plt.ylabel("Valor real", fontweight="bold", fontsize=12)
+    
     plt.tight_layout()
     plt.show()

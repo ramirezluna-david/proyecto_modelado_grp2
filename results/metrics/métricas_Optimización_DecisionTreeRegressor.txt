@@ -1,0 +1,15 @@
+Optimización para DecisionTreeRegressor
+
+==================================================
+Evaluación Final: Modelo de GridSearchCV
+==================================================
+MAE                 : 119280.6140
+RMSE                : 149572.9288
+R2 Score            : -0.0002
+
+==================================================
+Evaluación Final: Modelo de RandomizedSearchCV
+==================================================
+MAE                 : 119280.6140
+RMSE                : 149572.9288
+R2 Score            : -0.0002

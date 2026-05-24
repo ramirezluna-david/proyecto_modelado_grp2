@@ -1,0 +1,83 @@
+>> Regresión Logística (RandomSearch)
+RandomizedSearchCV con 20 iteraciones...
+Fitting 5 folds for each of 20 candidates, totalling 100 fits
+--- Resultados RandomizedSearchCV ---
+Mejores parámetros: {'modelo__C': np.float64(0.19069966103000435), 'modelo__penalty': 'l1', 'modelo__solver': 'saga'}
+Mejor score (roc_auc): 0.6656
+
+>> Decision Tree (RandomSearch)
+RandomizedSearchCV con 30 iteraciones...
+Fitting 5 folds for each of 30 candidates, totalling 150 fits
+--- Resultados RandomizedSearchCV ---
+Mejores parámetros: {'modelo__criterion': 'entropy', 'modelo__max_depth': 4, 'modelo__min_samples_leaf': 10, 'modelo__min_samples_split': 10}
+Mejor score (roc_auc): 0.6617
+
+>> SVM (RandomSearch)
+RandomizedSearchCV con 10 iteraciones...
+Fitting 3 folds for each of 10 candidates, totalling 30 fits
+--- Resultados RandomizedSearchCV ---
+Mejores parámetros: {'modelo__C': np.float64(0.23273922280628717), 'modelo__gamma': 'auto'}
+Mejor score (roc_auc): 0.6710
+
+==================================================
+Evaluación Final: Regresión Logística (RandomSearch)
+==================================================
+Accuracy            : 0.6232
+F1 Score:           : 0.5663
+ROC AUC Score       : 0.6751
+
+==================================================
+Evaluación Final: Árbol de Decisión (RandomSearch)
+==================================================
+Accuracy            : 0.6370
+F1 Score:           : 0.5694
+ROC AUC Score       : 0.6719
+
+==================================================
+Evaluación Final: SVM (RandomSearch)
+==================================================
+Accuracy            : 0.6248
+F1 Score:           : 0.5787
+ROC AUC Score       : 0.6770
+
+>> Regresión Logística (GridSearch)
+GridSearchCV...
+Fitting 5 folds for each of 24 candidates, totalling 120 fits
+--- Resultados GridSearchCV ---
+Mejores parámetros: {'modelo__C': 0.01, 'modelo__penalty': 'l2', 'modelo__solver': 'saga'}
+Mejor score (roc_auc): 0.6656
+
+>> Decision Tree (GridSearch)
+GridSearchCV...
+Fitting 5 folds for each of 120 candidates, totalling 600 fits
+--- Resultados GridSearchCV ---
+Mejores parámetros: {'modelo__criterion': 'entropy', 'modelo__max_depth': 5, 'modelo__min_samples_leaf': 10, 'modelo__min_samples_split': 2}
+Mejor score (roc_auc): 0.6614
+
+>> SVM (GridSearch)
+Iniciando GridSearchCV...
+Fitting 3 folds for each of 6 candidates, totalling 18 fits
+--- Resultados GridSearchCV ---
+Mejores parámetros: {'modelo__C': 0.1, 'modelo__gamma': 'auto'}
+Mejor score (roc_auc): 0.6699
+
+==================================================
+Evaluación Final: Regresión Logística (GridSearch)
+==================================================
+Accuracy            : 0.6245
+F1 Score:           : 0.5681
+ROC AUC Score       : 0.6751
+
+==================================================
+Evaluación Final: Árbol de Decisión (GridSearch)
+==================================================
+Accuracy            : 0.6228
+F1 Score:           : 0.5743
+ROC AUC Score       : 0.6700
+
+==================================================
+Evaluación Final: SVM (GridSearch)
+==================================================
+Accuracy            : 0.6230
+F1 Score:           : 0.5762
+ROC AUC Score       : 0.6772
