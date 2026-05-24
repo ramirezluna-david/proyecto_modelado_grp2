@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error, r2_score, roc_auc_score
 
@@ -119,3 +122,57 @@ def comparar_modelos_clasificacion(diccionario_modelos: dict, X_test: np.array, 
         df_resultados = df_resultados.sort_values(by=sort_by, ascending=False)
         
     return df_resultados
+
+def graficar_comparacion_metricas(df_metricas, metricas, target_name, colores=None, y_lim=None, label_fmt='%.2f'):
+    """
+    Genera gráficos de barras comparativos para múltiples métricas de evaluación.
+    
+    Parámetros
+    ----------
+    df_metricas : pd.DataFrame
+        DataFrame con los modelos como índice y las métricas como columnas.
+    metricas : list
+        Lista de strings con los nombres de las columnas de las métricas a graficar.
+    target_name : str
+        Nombre de la variable objetivo (para el título).
+    colores : list, opcional
+        Paleta de colores a utilizar en seaborn.
+    y_lim : tuple, opcional
+        Límites para el eje Y, ej: (0, 1) para métricas de clasificación.
+    label_fmt : str, opcional
+        Formato de los números sobre las barras, ej: '%.2f' o '%.4f'.
+    """
+    n_metricas = len(metricas)
+    
+    # Ajustar el ancho de la figura dinámicamente según la cantidad de métricas
+    fig, axes = plt.subplots(1, n_metricas, figsize=(6 * n_metricas, 5))
+    
+    # Asegurar que 'axes' sea iterable incluso si solo hay 1 métrica
+    if n_metricas == 1:
+        axes = [axes]
+        
+    for i, metrica in enumerate(metricas):
+        sns.barplot(
+            x=df_metricas.index,
+            y=df_metricas[metrica],
+            hue=df_metricas.index,
+            ax=axes[i],
+            palette=colores,
+            legend=False,
+        )
+        
+        # Formateo de textos y etiquetas
+        axes[i].set_title(f'{metrica.upper()} - {target_name}', fontsize=14)
+        axes[i].set_ylabel(metrica.upper())
+        axes[i].set_xlabel('')
+        
+        # Aplicar límites al eje Y si se especifican (útil para Accuracy, F1, etc.)
+        if y_lim:
+            axes[i].set_ylim(y_lim)
+            
+        # Añadir valores sobre las barras
+        for container in axes[i].containers:
+            axes[i].bar_label(container, fmt=label_fmt, padding=3)
+
+    plt.tight_layout()
+    plt.show()
