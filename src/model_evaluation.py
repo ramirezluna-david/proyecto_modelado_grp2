@@ -7,6 +7,7 @@ import seaborn as sns
 from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error, r2_score, roc_auc_score
 from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import roc_curve, roc_auc_score
 
 def evaluar_classifier(modelo: BaseEstimator, X_test: np.array, y_test: np.array):
   """
@@ -216,3 +217,38 @@ def graficar_matriz_confusion(modelo, X_test, y_test, clases=["No", "Sí"], titu
     
     plt.tight_layout()
     plt.show()
+
+def graficar_curva_roc(modelo, X_test, y_test, nombre_modelo="Modelo"):
+    """
+    Calcula y grafica la curva ROC y el AUC para un modelo de clasificación.
+    
+    Parámetros:
+    - modelo: El modelo o pipeline ya entrenado (debe soportar predict_proba).
+    - X_test: DataFrame o array con las variables independientes de prueba.
+    - y_test: Serie o array con la variable dependiente (objetivo) de prueba.
+    - nombre_modelo: String con el nombre del modelo para personalizar el título.
+    """
+    # 1. Obtener las probabilidades predichas para la clase positiva (1)
+    # Se usa [:, 1] para extraer solo la columna de la clase "Sí Abandona"
+    y_prob = modelo.predict_proba(X_test)[:, 1]
+    
+    # 2. Calcular ratios y el score AUC
+    fpr, tpr, thresholds = roc_curve(y_test, y_prob)
+    auc = roc_auc_score(y_test, y_prob)
+    
+    # 3. Construir la gráfica
+    plt.figure(figsize=(7, 5))
+    plt.plot(fpr, tpr, color='#1f77b4', lw=2, label=f"AUC = {auc:.4f}")
+    plt.plot([0, 1], [0, 1], color='gray', linestyle="--", lw=2, label='Aleatorio')
+    
+    # Configuraciones estéticas
+    plt.xlim([-0.02, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel("Ratio de Falsos Positivos (FPR)", fontsize=11)
+    plt.ylabel("Ratio de Verdaderos Positivos (TPR)", fontsize=11)
+    plt.title(f"Curva ROC - {nombre_modelo}", fontsize=14, fontweight="bold")
+    plt.legend(loc="lower right", fontsize=12)
+    plt.grid(alpha=0.3)
+    plt.show()
+    
+    print(f"ROC-AUC Score para {nombre_modelo}: {auc:.4f}\n")
